@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fin's Fileserver</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-B/GM4XqrwHnWXNOWMbloTmrYXZg10cakYGmpfsR/bbzQ6JAJI4ihuyADKLnBgrCe" crossorigin="anonymous">
+    <link rel="stylesheet" href="login.css">
+</head>
+
+<body>
+
+    <dialog class="dialog" id="explainDialog">
+        <div class="dialog-header" id="explaintitle">
+            <h1 class="dialog-title">Dialog title</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="dialog" aria-label="Close"></button>
+        </div>
+        <div class="dialog-body" id="explainbody" style="white-space: pre-line;">
+            <p>This is a native dialog element. It uses the browsers built-in modal behavior for accessibility and
+                focus management.</p>
+        </div>
+        <div class="dialog-footer">
+            <button type="button" class="btn-solid theme-secondary" data-bs-dismiss="dialog">Close</button>
+            <!--<button type="button" class="btn-solid theme-primary">Save changes</button> --> 
+        </div>
+    </dialog>
+
+
+    <div class="px-4 pt-5 my-5 text-center border-bottom" id="loginscreen" style="display:;">
+        <div class="container px-5">
+            <img src="WWJustFin.png" class="img-fluid border rounded-3 shadow-lg mb-4" alt="Example image"
+                loading="lazy">
+        </div>
+        <h1 class="display-4 fw-bold">Finn's File Server</h1>
+        <div class="col-lg-6 mx-auto ">
+            <p class="lead mb-4">Please enter your username and password to continue.</p>
+
+            <!-- TODO: remove test account dev/dev123 -->
+
+            <div class="d-flex justify-content-center mb-5">
+                <form name="lbox" class="d-flex flex-column align-items-center gap-3"
+                    style="width:20em; max-width:100%;">
+                    <div class="form-field w-100">
+                        <label for="username" class="form-label fs-5">username</label>
+                        <input type="text" class="form-control form-control-lg" id="username" autocomplete="off">
+                    </div>
+
+                    <div class="form-field w-100">
+                        <label for="password" class="form-label fs-5">password</label>
+                        <input type="password" class="form-control form-control-lg" id="password">
+                    </div>
+
+                    <button type="submit" id="loginBtn" class="btn btn-success btn-lg w-100">Log In</button>
+                    <div id="loginMessage" class="w-100" role="alert" aria-live="polite"></div>
+                </form>
+            </div>
+        </div>
+        <div class="overflow-hidden" style="max-height: 30vh;">
+            <small>Can't log in?  Contact <a href="mailto: bdavis@ffs.net">bdavis@ffs.net</a></small>
+        </div>
+    </div>
+
+    <div class="px-4 pt-5 my-5 text-center border-bottom" id="successscreen" style="display: none; ">
+
+
+
+
+
+        <div class="container px-5">
+            <img src="WWJustFin.png" class="img-fluid border rounded-3 shadow-lg mb-4" alt="Example image"
+                loading="lazy">
+        </div>
+        <h1 class="display-4 fw-bold">Finn's Files</h1>
+        <div class="col-lg-6 mx-auto ">
+            <table class="table text-start">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Size</th>
+                        <th>Modified</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>fishquality.xls</td>
+                        <td>12 MB</td>
+                        <td>2026-08-14</td>
+                    </tr>
+                    <tr>
+                        <td>seagull_report.pdf</td>
+                        <td>480 KB</td>
+                        <td>2026-09-28</td>
+                    </tr>
+                    <tr>
+                        <td>boardwalk_fries_budget.xlsx</td>
+                        <td>38 KB</td>
+                        <td>2026-10-02</td>
+                    </tr>
+                    <tr>
+                        <td>mascot_costume.docx</td>
+                        <td>22 KB</td>
+                        <td>2026-08-14</td>
+                    </tr>
+                    <tr>
+                        <td>pep_rally.pptx</td>
+                        <td>6 MB</td>
+                        <td>2026-10-09</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+        <div class="overflow-hidden" style="max-height: 30vh;">
+        </div>
+    </div>
+
+
+
+
+
+
+    <script type="module" src="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-1a/pXj49ZQ1aHEmrJ+gMw1otqoVsYwlEnlD8mIfY2TV03r20Y0CN7uqx1tQogjPL"
+        crossorigin="anonymous"></script>
+</body>
+
+<script>
+
+
+
+    const form = document.forms["lbox"];
+    const userInput = document.getElementById("username");
+    const passInput = document.getElementById("password");
+    const msg = document.getElementById("loginMessage");
+    const loginscreen = document.getElementById("loginscreen");
+    const successscreen = document.getElementById("successscreen");
+    const dialog = document.getElementById("explainDialog");
+    const explaintitle = document.getElementById("explaintitle");
+    const explainbody = document.getElementById("explainbody");
+    const unames = ["admin", "administrator", "support", "root", "sys", "system", "super", "superuser", "webadmin", "guest", "test", "manager", "kali"];
+    const sqlinj = ["'", "1=1",  "OR", "TRUE", "DROP TABLE"];
+    const commonpasswords = ["password", "pass", "1234", "admin", "1234567", "Pass@123", "admin123" ];
+    var audio = new Audio('win31.mp3');
+
+
+
+    function showMessage(text, type) {
+        // type: "success", "danger", "warning", "info"
+        msg.className = `alert alert-${type} w-100 mt-2 mb-0`;
+        msg.textContent = text;  // textContent, not innerHTML, so input is never rendered as HTML
+    }
+
+    function showfiles() {
+        loginscreen.style.display = "none";
+        successscreen.style.display = "";
+    }
+
+    function showlogin() {
+        loginscreen.style.display = "";
+        successscreen.style.display = "none"
+    }
+
+    function processLogin() {
+        const username = userInput.value.trim();
+        const password = passInput.value;
+        passInput.value = "";
+
+
+        if (!username && !password) {
+            showMessage("Please enter a username and password.", "warning");
+            userInput.focus();
+            return;
+        }
+
+        if (username == "dev" && password == "dev123") {
+            audio.play()
+            showfiles();
+            explaintitle.textContent = "Credential in HTML source. ";
+            explainbody.textContent = `Good Job!  
+            If you look at the HTML source code, you will see a comment left in during development that lists a user name and password.`;
+            document.getElementById("explainDialog").show();
+
+        } else if (unames.indexOf(username) > -1) {
+            audio.play()
+            showfiles();
+            explaintitle.textContent = "Default credentials ";
+            explainbody.textContent = `Good Job! 
+            Many times systems have default account set up.  It may have a default password, or no password.  These are common and easy to guess. `;
+            document.getElementById("explainDialog").show();
+
+
+        } else if (sqlinj.indexOf(username) > -1) {
+            audio.play()
+            showfiles();
+            explaintitle.textContent = "SQL Injection ";
+            explainbody.textContent = `Good Job! 
+            SQL injection happens when a website pastes whatever you type straight into a database query. A cleverly typed input can then change what the query means.
+
+A login box might check your credentials with a query like this:
+
+SELECT * FROM users WHERE username = 'fin' AND password = 'secret';
+
+Now suppose someone types this as the username:
+
+' OR '1'='1' --
+
+The query becomes:
+
+SELECT * FROM users WHERE username = '' OR '1'='1' --' AND password = '';
+
+The quote closes the username early. OR '1'='1' is always true, and -- turns the rest of the line, including the password check, into a comment. The database returns every user, and the site logs the attacker in, often as the first account in the table, which is usually the admin. `;
+
+            document.getElementById("explainDialog").show();
+
+        } else if (username == "bdavis" && password == "") {
+            audio.play()
+            showfiles();
+            explaintitle.textContent = "User with no password ";
+            explainbody.textContent = `Good Job! 
+            This user has no password at all on their account.  This can happen with service or system accounts that developers never intended for users to log in with.  `;
+            document.getElementById("explainDialog").show();
+
+        } else if (username == "bdavis" && commonpasswords.indexOf(password) > -1) {
+            audio.play()
+            showfiles();
+            explaintitle.textContent = "Common passwords ";
+            explainbody.textContent = `Good Job! 
+            This user is not using a secure password.  In fact, their password is one of the 10 most common passwords.   `;
+            document.getElementById("explainDialog").show();
+
+        }
+
+        // common passwords
+
+        // password spraying 
+
+        // brute force against one user name
+
+        // social engineering
+
+        // command injection
+        // ; ls, | whoami, && cat
+
+
+
+
+
+
+    }
+
+    function checkLogin(username, password) {
+        // Return an object describing the result.
+        // This is the hook for your own checks.
+        //if (username === DEMO_USER && password === DEMO_PASS) {
+        //    loginscreen.style.display = "none";
+        //    successscreen.style.display=""
+        //    return { ok: true, text: "Welcome back, Fin!", type: "success" };
+        //}
+
+        return { ok: false, text: "Invalid username or password.", type: "danger" };
+    }
+
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();  // stop the page from reloading
+
+
+        processLogin();
+        return;
+
+        const username = userInput.value.trim();
+        const password = passInput.value;
+
+
+        const result = checkLogin(username, password);
+        showMessage(result.text, result.type);
+
+        if (!result.ok) {
+            passInput.value = "";
+            passInput.focus();
+        }
+    });
+
+    dialog.addEventListener("close", () => {
+        showlogin();
+
+    });
+
+
+
+</script>
+
+</html>
