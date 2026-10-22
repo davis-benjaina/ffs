@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fall Open House Bingo</title>
+<meta name="theme-color" content="#123456">
+<style>
+  :root {
+    --bg: #f6f1e9;
+    --card: #ffffff;
+    --navy: #13304d;
+    --teal: #1f7a85;
+    --teal-soft: #e3f1f2;
+    --orange: #d9772b;
+    --orange-soft: #fbeadb;
+    --ink: #1c2733;
+    --muted: #5d6b78;
+    --line: #b9d3d6;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex; justify-content: center;
+    padding: 16px 10px 40px;
+  }
+  main { width: 100%; max-width: 560px; }
+
+  header { text-align: center; margin-bottom: 12px; }
+  .school {
+    font-size: .8rem; font-weight: 700; letter-spacing: .14em;
+    color: var(--teal); text-transform: uppercase;
+  }
+  header h1 {
+    margin: 4px 0 2px; color: var(--navy);
+    font-size: clamp(1.6rem, 7vw, 2.3rem); line-height: 1.05;
+    font-weight: 900; letter-spacing: .02em; text-transform: uppercase;
+  }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: .92rem; }
+
+  .status {
+    display: flex; align-items: center; gap: 10px;
+    margin: 12px 4px; font-size: .9rem; color: var(--muted);
+  }
+  .bar { flex: 1; height: 8px; background: #e2dccf; border-radius: 99px; overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--orange); transition: width .4s ease; }
+  .status b { color: var(--navy); }
+
+  .card {
+    background: var(--card);
+    border: 3px solid var(--navy);
+    border-radius: var(--radius);
+    padding: 8px;
+    box-shadow: 0 8px 24px rgba(19,48,77,.12);
+  }
+  .letters, .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+  .letters div {
+    text-align: center; font-weight: 900; color: #fff; background: var(--navy);
+    border-radius: 6px; padding: 4px 0; font-size: 1.1rem; letter-spacing: .05em;
+  }
+  .letters { margin-bottom: 5px; }
+  .sq {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 3px;
+    font-size: clamp(.46rem, 2.05vw, .74rem);
+    font-weight: 700; line-height: 1.12;
+    color: var(--navy);
+    overflow: hidden;
+    overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto;
+    transition: color .3s, border-color .3s;
+  }
+  .sq span { position: relative; z-index: 1; }
+  .sq::before {
+    content: ""; position: absolute; inset: 0;
+    background: var(--orange); opacity: 0;
+    transform: scale(.4); border-radius: 6px;
+    transition: opacity .3s, transform .35s cubic-bezier(.3,1.6,.5,1);
+  }
+  .sq::after {
+    content: "\2713"; position: absolute; top: 1px; right: 4px;
+    font-size: .8rem; color: #fff; opacity: 0; z-index: 1;
+  }
+  .sq.marked::before { opacity: 1; transform: scale(1); }
+  .sq.marked::after { opacity: .9; }
+  .sq.marked { color: #fff; border-color: var(--orange); }
+  .sq.free { color: #fff; font-size: clamp(.75rem, 3.4vw, 1.1rem); font-weight: 900; text-transform: uppercase; }
+  .sq.free::before { background: var(--teal); }
+  .sq.free::after { display: none; }
+  .sq.inline { border-color: var(--navy); border-width: 2.5px; }
+  .sq.pop { animation: pop .5s ease; }
+  @keyframes pop { 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
+
+  .btn {
+    display: block; width: 100%;
+    margin-top: 14px; padding: 16px;
+    font-size: 1.1rem; font-weight: 700;
+    border: 0; border-radius: 12px;
+    background: var(--navy); color: #fff; cursor: pointer;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn.secondary { background: transparent; color: var(--muted); font-size: .85rem; font-weight: 500; padding: 10px; margin-top: 6px; }
+
+  .msg { margin-top: 12px; padding: 12px 14px; border-radius: 10px; font-size: .95rem; display: none; }
+  .msg.show { display: block; }
+  .msg.ok { background: var(--teal-soft); color: var(--teal); }
+  .msg.warn { background: var(--orange-soft); color: #9a4d12; }
+  .msg.bingo { background: var(--orange); color: #fff; font-weight: 800; text-align: center; font-size: 1.15rem; }
+
+  .done {
+    display: none; text-align: center;
+    margin-top: 14px; padding: 20px 16px;
+    background: var(--card); border-radius: var(--radius);
+    border: 3px solid var(--orange);
+  }
+  .done.show { display: block; }
+  .done h2 { margin: 0 0 6px; color: var(--navy); font-size: 1.4rem; }
+  .done p { margin: 0 0 12px; color: var(--muted); }
+  .code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 1.8rem; font-weight: 800; letter-spacing: .12em;
+    padding: 12px; border-radius: 10px; background: var(--bg); color: var(--navy);
+  }
+  .done small { display: block; margin-top: 10px; color: var(--muted); }
+
+  .scanner {
+    position: fixed; inset: 0; background: rgba(10,20,30,.94);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; z-index: 10;
+  }
+  .scanner.open { display: flex; }
+  .scanner p { color: #fff; margin: 0 0 12px; text-align: center; }
+  #reader { width: 100%; max-width: 400px; border-radius: 12px; overflow: hidden; background: #000; }
+  .scanner .btn { max-width: 400px; background: #fff; color: var(--navy); }
+
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="school">Wor-Wic Community College &middot; Go Fins!</div>
+    <h1>Fall Open House Bingo</h1>
+    <p>Visit stations and scan their QR codes. Visit 9 for a chance to win a door prize.</p>
+  </header>
+
+  <div class="status">
+    <div class="bar"><span id="barFill"></span></div>
+    <span><b id="countText">0</b> of 9 stations</span>
+  </div>
+
+  <section class="card">
+    <div class="letters"><div>B</div><div>I</div><div>N</div><div>G</div><div>O</div></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <div class="msg" id="msg"></div>
+
+  <section class="done" id="done">
+    <h2>You're entered!</h2>
+    <p>Show this screen at the podium to turn in your card for the door prize drawing.</p>
+    <div class="code" id="code">----</div>
+    <small id="doneTime"></small>
+    <small>Keep scanning — you can still fill your card!</small>
+  </section>
+
+  <button class="btn" id="scanBtn">Scan a station QR code</button>
+  <button class="btn secondary" id="resetBtn">Reset my card</button>
+</main>
+
+<div class="scanner" id="scanner">
+  <p>Point your camera at the station's QR code</p>
+  <div id="reader"></div>
+  <button class="btn" id="closeScan">Cancel</button>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+(function () {
+  // ---- Configuration ----
+  // Squares in card order (left-to-right, top-to-bottom). null = FREE SPACE.
+  // Each station's QR code must contain "WWBINGO:" + its id, e.g. WWBINGO:01
+  const SQUARES = [
+    ["01", "Career & Testing Services/ Admissions"],
+    ["02", "Financial Aid & FAFSA Support"],
+    ["03", "Academic Advising"],
+    ["04", "Academic Support"],
+    ["05", "Dual Enrollment & Transfer Advising"],
+    ["06", "Waves/ Student Disability Services"],
+    ["07", "Student Success & Counseling"],
+    ["08", "TRIO Support Services/ VUB-Veterans"],
+    ["09", "Athletics & E-Sports"],
+    ["10", "Jordan Center"],
+    ["11", "Special Interest/ Service Clubs"],
+    ["12", "Gaming Association/ Chess Club"],
+    null,
+    ["13", "ABE/GED"],
+    ["14", "Business, Hospitality, Culinary Arts"],
+    ["15", "Human Services– CDC/EDU"],
+    ["16", "General Studies, Communication & English"],
+    ["17", "STEM/ Computer Studies"],
+    ["18", "Fins to the Finish Line"],
+    ["19", "RDT/OTA/PTA"],
+    ["20", "Nursing, CEWD Healthcare"],
+    ["21", "Criminal Justice, Public Safety, EMS"],
+    ["22", "Skilled Trades/ Transportation"],
+    ["23", "Ask a Student Q & A"],
+    ["24", "CEWD Info"],
+  ];
+  const PREFIX = "WWBINGO:";
+  const GOAL = 9;
+  const STORAGE_KEY = "wwbingo-fall-v1";
+
+  // All 12 bingo lines as square indexes (0-24)
+  const LINES = [];
+  for (let r = 0; r < 5; r++) LINES.push([0,1,2,3,4].map(c => r*5 + c));
+  for (let c = 0; c < 5; c++) LINES.push([0,1,2,3,4].map(r => r*5 + c));
+  LINES.push([0,6,12,18,24], [4,8,12,16,20]);
+
+  // ---- State (saved on this phone only) ----
+  function blank() { return { found: {}, code: null, completedAt: null, lines: 0 }; }
+  function load() {
+    try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
+    return blank();
+  }
+  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+  let state = load();
+
+  // ---- Build the grid ----
+  const grid = document.getElementById("grid");
+  SQUARES.forEach((sq, i) => {
+    const el = document.createElement("div");
+    el.className = "sq" + (sq ? "" : " free marked");
+    el.id = "sq-" + i;
+    el.innerHTML = "<span>" + (sq ? sq[1] : "Free Space") + "</span>";
+    grid.appendChild(el);
+  });
+
+  function isMarked(i) { return SQUARES[i] === null || !!state.found[SQUARES[i][0]]; }
+  function completedLines() { return LINES.filter(line => line.every(isMarked)); }
+
+  function render(popIndex) {
+    SQUARES.forEach((sq, i) => {
+      if (!sq) return;
+      const el = document.getElementById("sq-" + i);
+      el.classList.toggle("marked", isMarked(i));
+      if (i === popIndex) { el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); }
+    });
+    const inLine = new Set(completedLines().flat());
+    SQUARES.forEach((_, i) => document.getElementById("sq-" + i).classList.toggle("inline", inLine.has(i)));
+
+    const count = Object.keys(state.found).length;
+    document.getElementById("countText").textContent = Math.min(count, GOAL);
+    document.getElementById("barFill").style.width = Math.min(count / GOAL, 1) * 100 + "%";
+
+    const done = !!state.code;
+    document.getElementById("done").classList.toggle("show", done);
+    if (done) {
+      document.getElementById("code").textContent = state.code;
+      document.getElementById("doneTime").textContent =
+        count + " stations visited · entered " + new Date(state.completedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    }
+  }
+
+  // ---- Messages ----
+  const msg = document.getElementById("msg");
+  let msgTimer;
+  function say(text, kind) {
+    msg.textContent = text;
+    msg.className = "msg show " + (kind || "ok");
+    clearTimeout(msgTimer);
+    msgTimer = setTimeout(() => { msg.className = "msg"; }, 4500);
+  }
+
+  function makeCode() {
+    const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    let c = "";
+    for (let i = 0; i < 6; i++) c += chars[Math.floor(Math.random() * chars.length)];
+    return c.slice(0, 3) + "-" + c.slice(3);
+  }
+
+  // ---- Handle a scan ----
+  function handleScan(text) {
+    const value = (text || "").trim().toUpperCase();
+    const id = value.startsWith(PREFIX) ? value.slice(PREFIX.length) : null;
+    const index = SQUARES.findIndex(sq => sq && sq[0] === id);
+    if (index < 0) { say("That QR code isn't one of the bingo stations.", "warn"); return; }
+    const name = SQUARES[index][1];
+    if (state.found[id]) { say("You already have " + name + ".", "warn"); return; }
+
+    state.found[id] = new Date().toISOString();
+    const count = Object.keys(state.found).length;
+    const lines = completedLines().length;
+    const newBingo = lines > (state.lines || 0);
+    state.lines = lines;
+
+    let reachedGoal = false;
+    if (count >= GOAL && !state.code) {
+      state.code = makeCode();
+      state.completedAt = new Date().toISOString();
+      reachedGoal = true;
+    }
+    save();
+    render(index);
+
+    if (reachedGoal) {
+      say("That's 9 stations! You're entered for the door prize.", "bingo");
+      confetti();
+      setTimeout(() => document.getElementById("done").scrollIntoView({ behavior: "smooth", block: "center" }), 400);
+    } else if (newBingo) {
+      say("BINGO! " + (lines > 1 ? lines + " lines!" : ""), "bingo");
+      confetti();
+    } else if (count < GOAL) {
+      say(name + " collected! " + (GOAL - count) + " more to enter the drawing.", "ok");
+    } else {
+      say(name + " collected!", "ok");
+    }
+    if (navigator.vibrate) navigator.vibrate(80);
+  }
+
+  // ---- Scanner ----
+  const scanner = document.getElementById("scanner");
+  let qr = null, busy = false;
+
+  async function openScanner() {
+    if (typeof Html5Qrcode === "undefined") {
+      say("The scanner couldn't load. Check your connection and reload the page.", "warn");
+      return;
+    }
+    scanner.classList.add("open");
+    busy = false;
+    qr = qr || new Html5Qrcode("reader");
+    try {
+      await qr.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: (w, h) => { const m = Math.floor(Math.min(w, h) * 0.7); return { width: m, height: m }; } },
+        async (decoded) => {
+          if (busy) return;
+          busy = true;
+          await closeScanner();
+          handleScan(decoded);
+        },
+        () => {}
+      );
+    } catch (err) {
+      await closeScanner();
+      say("Camera unavailable. Allow camera access and make sure the page uses https.", "warn");
+    }
+  }
+  async function closeScanner() {
+    scanner.classList.remove("open");
+    if (qr && qr.isScanning) { try { await qr.stop(); } catch (e) {} }
+  }
+
+  document.getElementById("scanBtn").addEventListener("click", openScanner);
+  document.getElementById("closeScan").addEventListener("click", closeScanner);
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if (confirm("Clear your whole bingo card on this phone?")) {
+      state = blank(); save(); render(); say("Card reset.", "ok");
+    }
+  });
+
+  // ---- Confetti ----
+  function confetti() {
+    const cv = document.getElementById("confetti");
+    const ctx = cv.getContext("2d");
+    cv.width = innerWidth; cv.height = innerHeight;
+    const colors = ["#13304d", "#1f7a85", "#d9772b", "#e8b13a", "#a8432a"];
+    const parts = Array.from({ length: 150 }, () => ({
+      x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * 0.5,
+      w: 6 + Math.random() * 6, h: 8 + Math.random() * 8,
+      vy: 2 + Math.random() * 3, vx: -1.5 + Math.random() * 3,
+      r: Math.random() * Math.PI, vr: -0.2 + Math.random() * 0.4,
+      c: colors[Math.floor(Math.random() * colors.length)]
+    }));
+    const start = performance.now();
+    (function frame(t) {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      parts.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+        ctx.fillStyle = p.c; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h); ctx.restore();
+      });
+      if (t - start < 3500) requestAnimationFrame(frame); else ctx.clearRect(0, 0, cv.width, cv.height);
+    })(start);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
